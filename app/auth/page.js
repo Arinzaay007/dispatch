@@ -33,7 +33,7 @@ export default function Auth() {
     if (mode === 'signin') {
       const { error } = await supabase.auth.signInWithPassword({ email, password })
       if (error) setMessage(error.message)
-      else window.location.href = '/'
+    else window.location.href = '/dashboard'
     } else {
       const { error } = await supabase.auth.signUp({ email, password })
       if (error) setMessage(error.message)
