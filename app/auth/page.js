@@ -41,13 +41,6 @@ export default function Auth() {
     setLoading(false)
   }
 
-  async function handleGoogle() {
-    await supabase.auth.signInWithOAuth({
-      provider: 'google',
-      options: { redirectTo: `${window.location.origin}/dashboard` }
-    })
-  }
-
   const inputStyle = {
     width: '100%',
     background: '#0e1420',
@@ -75,7 +68,6 @@ export default function Auth() {
     textTransform: 'uppercase',
     cursor: 'pointer',
     fontFamily: "'IBM Plex Mono', monospace",
-    marginBottom: '10px',
   }
 
   return (
@@ -105,22 +97,16 @@ export default function Auth() {
           </div>
 
           <input style={inputStyle} type="email" placeholder="Email" value={email} onChange={e => setEmail(e.target.value)} />
-          <input style={inputStyle} type="password" placeholder="Password" value={password} onChange={e => setPassword(e.target.value)} />
+          <input style={inputStyle} type="password" placeholder="Password" value={password} onChange={e => setPassword(e.target.value)} onKeyDown={e => e.key === 'Enter' && handleSubmit()} />
 
           {message && (
-            <div style={{ fontSize: '12px', color: message.includes('onboarding') ? '#10b981' : '#ef4444', marginBottom: '12px', lineHeight: 1.5 }}>
+            <div style={{ fontSize: '12px', color: '#ef4444', marginBottom: '12px', lineHeight: 1.5 }}>
               {message}
             </div>
           )}
 
           <button style={btnStyle} onClick={handleSubmit} disabled={loading}>
             {loading ? 'LOADING...' : mode === 'signin' ? 'SIGN IN' : 'CREATE ACCOUNT'}
-          </button>
-
-          <div style={{ textAlign: 'center', fontSize: '11px', color: colors.textMuted, margin: '12px 0', letterSpacing: '0.1em' }}>OR</div>
-
-          <button onClick={handleGoogle} style={{ ...btnStyle, background: 'transparent', color: colors.text, border: `1px solid ${colors.border}`, marginBottom: 0 }}>
-            Continue with Google
           </button>
         </div>
       </div>
