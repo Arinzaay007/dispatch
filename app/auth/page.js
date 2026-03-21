@@ -15,8 +15,6 @@ export default function Auth() {
   const [message, setMessage] = useState('')
   const [loading, setLoading] = useState(false)
 
-  const dark = true
-
   const colors = {
     bg: '#080c12',
     surface: '#0e1420',
@@ -33,11 +31,11 @@ export default function Auth() {
     if (mode === 'signin') {
       const { error } = await supabase.auth.signInWithPassword({ email, password })
       if (error) setMessage(error.message)
-    else window.location.href = '/dashboard'
+      else window.location.href = '/dashboard'
     } else {
       const { error } = await supabase.auth.signUp({ email, password })
       if (error) setMessage(error.message)
-      else setMessage('Check your email to confirm your account.')
+      else window.location.href = '/onboarding'
     }
 
     setLoading(false)
@@ -46,7 +44,7 @@ export default function Auth() {
   async function handleGoogle() {
     await supabase.auth.signInWithOAuth({
       provider: 'google',
-      options: { redirectTo: window.location.origin }
+      options: { redirectTo: `${window.location.origin}/dashboard` }
     })
   }
 
@@ -106,23 +104,11 @@ export default function Auth() {
             ))}
           </div>
 
-          <input
-            style={inputStyle}
-            type="email"
-            placeholder="Email"
-            value={email}
-            onChange={e => setEmail(e.target.value)}
-          />
-          <input
-            style={inputStyle}
-            type="password"
-            placeholder="Password"
-            value={password}
-            onChange={e => setPassword(e.target.value)}
-          />
+          <input style={inputStyle} type="email" placeholder="Email" value={email} onChange={e => setEmail(e.target.value)} />
+          <input style={inputStyle} type="password" placeholder="Password" value={password} onChange={e => setPassword(e.target.value)} />
 
           {message && (
-            <div style={{ fontSize: '12px', color: message.includes('Check') ? '#10b981' : '#ef4444', marginBottom: '12px', lineHeight: 1.5 }}>
+            <div style={{ fontSize: '12px', color: message.includes('onboarding') ? '#10b981' : '#ef4444', marginBottom: '12px', lineHeight: 1.5 }}>
               {message}
             </div>
           )}
