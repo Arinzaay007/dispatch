@@ -237,7 +237,7 @@ export default function Dashboard() {
           <div>
             <div style={styles.sectionTitle}><span>◈</span> Signal Feed</div>
             <div style={{ display: 'flex', gap: '6px', marginBottom: '1.5rem', flexWrap: 'wrap' }}>
-              {['all', 'newsapi', 'reddit', 'github', 'jobs', 'hackernews', 'producthunt', 'indiehackers'].map(f => <button key={f} style={styles.pill(filter === f)} onClick={() => setFilter(f)}>{f}</button>)}
+              {["all", "newsapi", "reddit", "github", "jobs", "hackernews", "show_hn"].map(f => <button key={f} style={styles.pill(filter === f)} onClick={() => setFilter(f)}>{f}</button>)}
             </div>
             <div style={styles.card}>
               {filtered.map((s, i) => (
