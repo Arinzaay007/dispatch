@@ -19,9 +19,11 @@ export default function Dashboard() {
   const [user, setUser] = useState(null)
   const [loading, setLoading] = useState(true)
   const [filter, setFilter] = useState('all')
+  const [search, setSearch] = useState('')
   const [settingsName, setSettingsName] = useState('')
   const [settingsGoals, setSettingsGoals] = useState('')
   const [settingsKeywords, setSettingsKeywords] = useState('')
+  const [settingsSubreddits, setSettingsSubreddits] = useState('')
   const [saveMsg, setSaveMsg] = useState('')
 
   const dark = theme === 'dark'
@@ -63,6 +65,7 @@ export default function Dashboard() {
       setSettingsName(prof?.name || '')
       setSettingsGoals(prof?.goals?.join(', ') || '')
       setSettingsKeywords(prof?.keywords?.join(', ') || '')
+      setSettingsSubreddits(prof?.custom_subreddits?.join(', ') || '')
       setLoading(false)
     }
     load()
@@ -72,9 +75,10 @@ export default function Dashboard() {
     if (!user) return
     const goals = settingsGoals.split(',').map(s => s.trim()).filter(Boolean)
     const keywords = settingsKeywords.split(',').map(s => s.trim()).filter(Boolean)
+    const custom_subreddits = settingsSubreddits.split(',').map(s => s.trim()).filter(Boolean)
     const { error } = await supabase
       .from('profiles')
-      .upsert({ id: user.id, name: settingsName, goals, keywords })
+      .upsert({ id: user.id, name: settingsName, goals, keywords, custom_subreddits })
     if (error) setSaveMsg('Error saving. Try again.')
     else setSaveMsg('Saved!')
     setTimeout(() => setSaveMsg(''), 2000)
@@ -87,9 +91,14 @@ export default function Dashboard() {
 
   const drafts = signals.filter(s => s.draft)
   const jobs = signals.filter(s => s.source === 'jobs')
-  const filtered = filter === 'all' ? signals : signals.filter(s => s.source === filter)
   const reviewCount = signals.filter(s => s.needs_review).length
   const highCount = signals.filter(s => s.score === 'high').length
+
+  const filtered = signals.filter(s => {
+    const matchSource = filter === 'all' || s.source === filter
+    const matchSearch = !search || s.title?.toLowerCase().includes(search.toLowerCase())
+    return matchSource && matchSearch
+  })
 
   const colors = {
     bg: dark ? '#080c12' : '#f0f2f5',
@@ -116,9 +125,9 @@ export default function Dashboard() {
 
   const styles = {
     page: { minHeight: '100vh', background: colors.bg, color: colors.text, fontFamily: "'IBM Plex Mono', 'Courier New', monospace", transition: 'all 0.3s ease' },
-    topbar: { display: 'flex', alignItems: 'center', justifyContent: 'space-between', padding: '0 2rem', height: '56px', borderBottom: `1px solid ${colors.border}`, background: colors.surface, position: 'sticky', top: 0, zIndex: 100 },
+    topbar: { display: 'flex', alignItems: 'center', justifyContent: 'space-between', padding: '0 2rem', height: '56px', borderBottom: `1px solid ${colors.border}`, background: colors.surface, position: 'sticky', top: 0, zIndex: 100, flexWrap: 'wrap', gap: '8px' },
     logo: { fontSize: '14px', fontWeight: 700, letterSpacing: '0.2em', color: colors.accent, textTransform: 'uppercase' },
-    nav: { display: 'flex', gap: '2px' },
+    nav: { display: 'flex', gap: '2px', flexWrap: 'wrap' },
     navBtn: (a) => ({ padding: '6px 14px', fontSize: '11px', letterSpacing: '0.1em', textTransform: 'uppercase', background: active === a ? `${colors.accent}18` : 'transparent', color: active === a ? colors.accent : colors.textMuted, border: active === a ? `1px solid ${colors.accent}40` : '1px solid transparent', borderRadius: '4px', cursor: 'pointer', fontFamily: 'inherit', transition: 'all 0.15s' }),
     themeBtn: { fontSize: '11px', padding: '5px 12px', background: 'transparent', border: `1px solid ${colors.border}`, borderRadius: '4px', color: colors.textMuted, cursor: 'pointer', fontFamily: 'inherit', letterSpacing: '0.1em' },
     main: { maxWidth: '1400px', margin: '0 auto', padding: '2rem' },
@@ -138,6 +147,7 @@ export default function Dashboard() {
     label: { fontSize: '10px', letterSpacing: '0.15em', textTransform: 'uppercase', color: colors.textMuted, marginBottom: '6px', display: 'block' },
     saveBtn: { padding: '10px 24px', background: colors.accent, color: '#000', border: 'none', borderRadius: '6px', fontSize: '11px', fontWeight: 700, letterSpacing: '0.15em', textTransform: 'uppercase', cursor: 'pointer', fontFamily: 'inherit' },
     pill: (a) => ({ fontSize: '10px', letterSpacing: '0.1em', textTransform: 'uppercase', padding: '4px 12px', borderRadius: '3px', border: `1px solid ${a ? colors.accent : colors.border}`, background: a ? `${colors.accent}15` : 'transparent', color: a ? colors.accent : colors.textMuted, cursor: 'pointer', fontFamily: 'inherit' }),
+    searchInput: { background: colors.surface2, border: `1px solid ${colors.border}`, borderRadius: '6px', padding: '8px 14px', color: colors.text, fontFamily: 'inherit', fontSize: '12px', outline: 'none', width: '240px' },
   }
 
   const accentLine = { position: 'absolute', top: 0, left: 0, right: 0, height: '2px', background: `linear-gradient(90deg, ${colors.accent}, ${colors.accent2})` }
@@ -165,7 +175,10 @@ export default function Dashboard() {
 
         {active === 'Brief' && (
           <div>
-            <div style={styles.sectionTitle}><span>◈</span> Morning Brief<span style={{ marginLeft: 'auto', fontSize: '10px', color: colors.textMuted }}>{new Date().toLocaleDateString('en-US', { weekday: 'long', month: 'short', day: 'numeric' })}</span></div>
+            <div style={styles.sectionTitle}>
+              <span>◈</span> Morning Brief
+              <span style={{ marginLeft: 'auto', fontSize: '10px', color: colors.textMuted }}>{new Date().toLocaleDateString('en-US', { weekday: 'long', month: 'short', day: 'numeric' })}</span>
+            </div>
             <div style={{ marginBottom: '1.5rem' }}>
               <div style={{ fontSize: '22px', fontWeight: 700, color: colors.text, marginBottom: '4px' }}>Good morning, {profile?.name || user?.email?.split('@')[0] || 'Agent'}.</div>
               <div style={{ fontSize: '12px', color: colors.textMuted }}>Dispatch ran overnight. Here's your intelligence summary.</div>
@@ -189,7 +202,10 @@ export default function Dashboard() {
                 <div style={{ fontSize: '11px', letterSpacing: '0.15em', textTransform: 'uppercase', color: colors.textMuted, marginBottom: '1rem' }}>Top signals</div>
                 {signals.filter(s => s.score === 'high').slice(0, 6).map((s, i) => (
                   <div key={i} style={styles.signalItem}>
-                    <div style={{ display: 'flex', gap: '8px', alignItems: 'center', marginBottom: '6px' }}><span style={styles.sourceTag}>{s.source}</span><span style={styles.tag(s.score)}>{s.score}</span></div>
+                    <div style={{ display: 'flex', gap: '8px', alignItems: 'center', marginBottom: '6px' }}>
+                      <span style={styles.sourceTag}>{s.source}</span>
+                      <span style={styles.tag(s.score)}>{s.score}</span>
+                    </div>
                     <div style={{ fontSize: '13px', color: colors.text, lineHeight: 1.5 }}>{s.title}</div>
                     <div style={{ fontSize: '11px', color: colors.textMuted, marginTop: '4px' }}>{s.action_taken}</div>
                   </div>
@@ -212,7 +228,7 @@ export default function Dashboard() {
                 </div>
                 <div style={styles.card}>
                   <div style={{ fontSize: '11px', letterSpacing: '0.15em', textTransform: 'uppercase', color: colors.textMuted, marginBottom: '1rem' }}>Source breakdown</div>
-                  {['newsapi', 'reddit', 'github', 'jobs'].map(src => {
+                  {['newsapi', 'reddit', 'github', 'jobs', 'hackernews', 'crypto', 'bugbounty'].map(src => {
                     const count = signals.filter(s => s.source === src).length
                     const pct = signals.length ? Math.round((count / signals.length) * 100) : 0
                     return (
@@ -236,8 +252,18 @@ export default function Dashboard() {
         {active === 'Signals' && (
           <div>
             <div style={styles.sectionTitle}><span>◈</span> Signal Feed</div>
-            <div style={{ display: 'flex', gap: '6px', marginBottom: '1.5rem', flexWrap: 'wrap' }}>
-              {["all", "newsapi", "reddit", "github", "jobs", "hackernews", "show_hn"].map(f => <button key={f} style={styles.pill(filter === f)} onClick={() => setFilter(f)}>{f}</button>)}
+            <div style={{ display: 'flex', gap: '8px', marginBottom: '1.5rem', flexWrap: 'wrap', alignItems: 'center' }}>
+              <input
+                style={styles.searchInput}
+                placeholder="Search signals..."
+                value={search}
+                onChange={e => setSearch(e.target.value)}
+              />
+              <div style={{ display: 'flex', gap: '6px', flexWrap: 'wrap' }}>
+                {['all', 'newsapi', 'reddit', 'github', 'jobs', 'hackernews', 'show_hn', 'crypto', 'bugbounty'].map(f => (
+                  <button key={f} style={styles.pill(filter === f)} onClick={() => setFilter(f)}>{f}</button>
+                ))}
+              </div>
             </div>
             <div style={styles.card}>
               {filtered.map((s, i) => (
@@ -325,7 +351,7 @@ export default function Dashboard() {
         {active === 'Settings' && (
           <div>
             <div style={styles.sectionTitle}><span>◈</span> Settings</div>
-            <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '16px' }}>
+            <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(300px, 1fr))', gap: '16px' }}>
               <div style={styles.card}>
                 <div style={{ fontSize: '11px', letterSpacing: '0.15em', textTransform: 'uppercase', color: colors.textMuted, marginBottom: '1.5rem' }}>Profile</div>
                 <label style={styles.label}>Name</label>
@@ -334,6 +360,8 @@ export default function Dashboard() {
                 <input style={styles.input} value={settingsGoals} onChange={e => setSettingsGoals(e.target.value)} placeholder="find remote jobs, grow audience..." />
                 <label style={styles.label}>Keywords (comma separated)</label>
                 <input style={styles.input} value={settingsKeywords} onChange={e => setSettingsKeywords(e.target.value)} placeholder="AI agents, solidity, bug bounty..." />
+                <label style={styles.label}>Custom subreddits (comma separated)</label>
+                <input style={styles.input} value={settingsSubreddits} onChange={e => setSettingsSubreddits(e.target.value)} placeholder="web3, netsec, defi..." />
                 <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
                   <button style={styles.saveBtn} onClick={saveProfile}>SAVE PROFILE</button>
                   {saveMsg && <span style={{ fontSize: '12px', color: saveMsg === 'Saved!' ? colors.success : colors.danger }}>{saveMsg}</span>}
@@ -346,8 +374,8 @@ export default function Dashboard() {
                 <label style={styles.label}>Account</label>
                 <div style={{ fontSize: '12px', color: colors.textMuted, marginBottom: '1.5rem' }}>{user?.email}</div>
                 <label style={styles.label}>Sources active</label>
-                {['NewsAPI', 'Reddit', 'GitHub', 'Jobs (Remotive)'].map(src => (
-                  <div key={src} style={{ display: 'flex', justifyContent: 'space-between', padding: '10px 0', borderBottom: `1px solid ${colors.border}` }}>
+                {['NewsAPI', 'Reddit', 'GitHub', 'Jobs (Remotive)', 'Hacker News', 'Crypto (CoinDesk/Decrypt)', 'Bug Bounty (Immunefi)'].map(src => (
+                  <div key={src} style={{ display: 'flex', justifyContent: 'space-between', padding: '8px 0', borderBottom: `1px solid ${colors.border}` }}>
                     <span style={{ fontSize: '12px', color: colors.text }}>{src}</span>
                     <span style={{ fontSize: '10px', color: colors.success, letterSpacing: '0.1em' }}>● ACTIVE</span>
                   </div>
