@@ -12,13 +12,11 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - name: Trigger agent
-        run: |
-          curl -X GET -H "Authorization: Bearer ${{ secrets.CRON_SECRET }}" --max-time 300 ${{ secrets.APP_URL }}/api/cron/run
+        run: curl -X GET -H "Authorization: Bearer ${{ secrets.CRON_SECRET }}" --max-time 300 ${{ secrets.APP_URL }}/api/cron/run
 
   send-email:
     name: Send Email Digest
     runs-on: ubuntu-latest
     steps:
       - name: Send digest
-        run: |
-          curl -X GET -H "Authorization: Bearer ${{ secrets.CRON_SECRET }}" --max-time 120 ${{ secrets.APP_URL }}/api/email
+        run: curl -X GET -H "Authorization: Bearer ${{ secrets.CRON_SECRET }}" --max-time 120 ${{ secrets.APP_URL }}/api/email
