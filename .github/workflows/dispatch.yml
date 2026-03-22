@@ -2,15 +2,14 @@ name: Dispatch Daily Run
 
 on:
   schedule:
-    - cron: '0 5 * * *'  # 5am UTC daily (6am Lagos)
-    - cron: '0 6 * * *'  # 6am UTC daily (7am Lagos) - email digest
-  workflow_dispatch:      # allows manual trigger from GitHub
+    - cron: '0 5 * * *'
+    - cron: '0 6 * * *'
+  workflow_dispatch:
 
 jobs:
   run-agent:
     name: Run Dispatch Agent
     runs-on: ubuntu-latest
-    if: github.event.schedule == '0 5 * * *' || github.event_name == 'workflow_dispatch'
     steps:
       - name: Trigger agent
         run: |
@@ -22,7 +21,7 @@ jobs:
   send-email:
     name: Send Email Digest
     runs-on: ubuntu-latest
-    if: github.event.schedule == '0 6 * * *'
+    needs: run-agent
     steps:
       - name: Send digest
         run: |
