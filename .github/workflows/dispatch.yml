@@ -1,0 +1,32 @@
+name: Dispatch Daily Run
+
+on:
+  schedule:
+    - cron: '0 5 * * *'  # 5am UTC daily (6am Lagos)
+    - cron: '0 6 * * *'  # 6am UTC daily (7am Lagos) - email digest
+  workflow_dispatch:      # allows manual trigger from GitHub
+
+jobs:
+  run-agent:
+    name: Run Dispatch Agent
+    runs-on: ubuntu-latest
+    if: github.event.schedule == '0 5 * * *' || github.event_name == 'workflow_dispatch'
+    steps:
+      - name: Trigger agent
+        run: |
+          curl -X GET \
+            -H "Authorization: Bearer ${{ secrets.CRON_SECRET }}" \
+            --max-time 300 \
+            ${{ secrets.APP_URL }}/api/cron/run
+
+  send-email:
+    name: Send Email Digest
+    runs-on: ubuntu-latest
+    if: github.event.schedule == '0 6 * * *'
+    steps:
+      - name: Send digest
+        run: |
+          curl -X GET \
+            -H "Authorization: Bearer ${{ secrets.CRON_SECRET }}" \
+            --max-time 120 \
+            ${{ secrets.APP_URL }}/api/email
