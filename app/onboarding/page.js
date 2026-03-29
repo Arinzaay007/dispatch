@@ -136,7 +136,7 @@ export default function Onboarding() {
           {STEPS.map((s, i) => (
             <div key={i} style={{ flex: 1 }}>
               <div style={{ height: '2px', background: i <= step ? C.accent : C.border, borderRadius: '1px', transition: 'background 0.3s' }} />
-              <div style={{ fontSize: '7px', color: i <= step ? C.accent : C.textMuted, letterSpacing: '0.08em', marginTop: '4px', textAlign: 'center', display: window?.innerWidth > 500 ? 'block' : 'none' }}>{s}</div>
+              <div style={{ fontSize: '7px', color: i <= step ? C.accent : C.textMuted, letterSpacing: '0.08em', marginTop: '4px', textAlign: 'center', display: "block" }}>{s}</div>
             </div>
           ))}
         </div>
