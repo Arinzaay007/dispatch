@@ -1,12 +1,18 @@
-import { Resend } from 'resend'
+import nodemailer from 'nodemailer'
 import { createClient } from '@supabase/supabase-js'
-
-const resend = new Resend(process.env.RESEND_API_KEY)
 
 const supabase = createClient(
   process.env.NEXT_PUBLIC_SUPABASE_URL,
   process.env.SUPABASE_SERVICE_KEY
 )
+
+const transporter = nodemailer.createTransport({
+  service: 'gmail',
+  auth: {
+    user: process.env.GMAIL_USER,
+    pass: process.env.GMAIL_APP_PASSWORD,
+  },
+})
 
 export const dynamic = 'force-dynamic'
 
@@ -16,9 +22,7 @@ export async function GET(req) {
     return Response.json({ error: 'Unauthorized' }, { status: 401 })
   }
 
-  const { data: profiles } = await supabase
-    .from('profiles')
-    .select('*')
+  const { data: profiles } = await supabase.from('profiles').select('*')
 
   let sent = 0
 
@@ -47,10 +51,10 @@ export async function GET(req) {
 
     const signalRows = signals.map(s => `
       <tr>
-        <td style="padding: 12px 0; border-bottom: 1px solid #1e2d45;">
-          <span style="font-size: 10px; color: #00e5ff; font-family: monospace; text-transform: uppercase;">${s.source}</span>
-          <p style="margin: 6px 0 4px; font-size: 14px; color: #e2eaf7;">${s.title}</p>
-          <span style="font-size: 11px; color: #4a6080;">${s.action_taken}</span>
+        <td style="padding: 12px 0; border-bottom: 1px solid #1a2535;">
+          <span style="font-size: 10px; color: #f97316; font-family: monospace; text-transform: uppercase;">${s.source}</span>
+          <p style="margin: 6px 0 4px; font-size: 14px; color: #e8ddd0;">${s.title}</p>
+          <span style="font-size: 11px; color: #4a5568;">${s.action_taken}</span>
         </td>
       </tr>
     `).join('')
@@ -58,31 +62,31 @@ export async function GET(req) {
     const html = `
       <!DOCTYPE html>
       <html>
-      <body style="background: #080c12; margin: 0; padding: 40px 20px; font-family: 'Courier New', monospace;">
+      <body style="background: #080a0f; margin: 0; padding: 40px 20px; font-family: 'Courier New', monospace;">
         <div style="max-width: 600px; margin: 0 auto;">
           <div style="margin-bottom: 32px;">
-            <h1 style="font-size: 14px; color: #00e5ff; letter-spacing: 0.2em; margin: 0 0 8px;">⬡ DISPATCH</h1>
-            <p style="font-size: 11px; color: #4a6080; margin: 0; letter-spacing: 0.1em;">YOUR MORNING INTELLIGENCE BRIEF</p>
+            <h1 style="font-size: 14px; color: #f97316; letter-spacing: 0.2em; margin: 0 0 8px;">DISPATCH</h1>
+            <p style="font-size: 11px; color: #4a5568; margin: 0; letter-spacing: 0.1em;">MORNING INTELLIGENCE BRIEF</p>
           </div>
-          <h2 style="font-size: 22px; color: #e2eaf7; font-weight: 700; margin: 0 0 8px;">Good morning, ${profile.name || 'Agent'}.</h2>
-          <p style="font-size: 12px; color: #4a6080; margin: 0 0 32px;">Dispatch scanned ${briefing?.signal_count || signals.length} signals overnight. Here are your top picks.</p>
-          <div style="background: #0e1420; border: 1px solid #1e2d45; border-radius: 8px; padding: 24px; margin-bottom: 24px;">
-            <p style="font-size: 10px; color: #4a6080; letter-spacing: 0.15em; text-transform: uppercase; margin: 0 0 16px;">Top Signals</p>
+          <h2 style="font-size: 22px; color: #e8ddd0; font-weight: 700; margin: 0 0 8px;">GOOD MORNING, ${(profile.name || 'AGENT').toUpperCase()}.</h2>
+          <p style="font-size: 12px; color: #4a5568; margin: 0 0 32px;">Dispatch scanned ${briefing?.signal_count || signals.length} signals overnight. Here are your top picks.</p>
+          <div style="background: #0d1117; border: 1px solid #1a2535; border-radius: 4px; padding: 24px; margin-bottom: 24px;">
+            <p style="font-size: 10px; color: #4a5568; letter-spacing: 0.15em; text-transform: uppercase; margin: 0 0 16px;">// PRIORITY SIGNALS</p>
             <table style="width: 100%; border-collapse: collapse;">${signalRows}</table>
           </div>
           <div style="text-align: center; margin-bottom: 32px;">
-            <a href="https://dispatch-psi.vercel.app" style="display: inline-block; padding: 12px 32px; background: #00e5ff; color: #000; font-weight: 700; font-size: 12px; letter-spacing: 0.15em; text-decoration: none; border-radius: 6px;">VIEW FULL BRIEF ↗</a>
+            <a href="https://dispatch-psi.vercel.app" style="display: inline-block; padding: 12px 32px; background: #f97316; color: #000; font-weight: 700; font-size: 12px; letter-spacing: 0.15em; text-decoration: none; border-radius: 3px;">VIEW FULL BRIEF ↗</a>
           </div>
-          <p style="font-size: 10px; color: #2a3f5c; text-align: center;">Dispatch · Your autonomous intelligence agent</p>
+          <p style="font-size: 10px; color: #1a2535; text-align: center;">DISPATCH // AUTONOMOUS INTELLIGENCE NETWORK</p>
         </div>
       </body>
       </html>
     `
 
-    await resend.emails.send({
-      from: 'Dispatch <onboarding@resend.dev>',
+    await transporter.sendMail({
+      from: `Dispatch <${process.env.GMAIL_USER}>`,
       to: email,
-      subject: `⬡ Dispatch Brief — ${new Date().toLocaleDateString('en-US', { weekday: 'long', month: 'short', day: 'numeric' })}`,
+      subject: `DISPATCH BRIEF // ${new Date().toLocaleDateString('en-US', { weekday: 'long', month: 'short', day: 'numeric' }).toUpperCase()}`,
       html,
     })
 
