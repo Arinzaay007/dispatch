@@ -15,7 +15,11 @@ jobs:
         env:
           CRON_SECRET: ${{ secrets.CRON_SECRET }}
           APP_URL: ${{ secrets.APP_URL }}
-        run: curl -X GET -H "Authorization: Bearer $CRON_SECRET" --max-time 300 $APP_URL/api/cron/run
+        run: |
+          curl -X GET \
+            -H "Authorization: Bearer $CRON_SECRET" \
+            --max-time 300 \
+            $APP_URL/api/cron/run
 
   send-email:
     name: Send Email Digest
@@ -25,4 +29,8 @@ jobs:
         env:
           CRON_SECRET: ${{ secrets.CRON_SECRET }}
           APP_URL: ${{ secrets.APP_URL }}
-        run: curl -X GET -H "Authorization: Bearer $CRON_SECRET" --max-time 120 $APP_URL/api/email
+        run: |
+          curl -X GET \
+            -H "Authorization: Bearer $CRON_SECRET" \
+            --max-time 120 \
+            $APP_URL/api/email
