@@ -35,7 +35,7 @@ export async function GET(req) {
       .from('signals')
       .select('*')
       .eq('user_id', profile.id)
-      .eq('score', 'high')
+      .in('score', ['high', 'medium'])
       .order('created_at', { ascending: false })
       .limit(5)
 
